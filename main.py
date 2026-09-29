@@ -3,19 +3,25 @@ from contextlib import asynccontextmanager
 import httpx
 import os
 import secrets
+from pathlib import Path
 from urllib.parse import urlencode
 
 from fastapi import FastAPI, Depends, HTTPException
 from pydantic import BaseModel
 from fastapi.requests import Request
-from fastapi.responses import RedirectResponse
-from sqlalchemy import Connection, select, insert
+from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
+from sqlalchemy import Connection, select, insert, update
 from starlette.middleware.sessions import SessionMiddleware
 from dotenv import load_dotenv
+
+from src.crypto import encrypt_token, decrypt_token
 from src.database import users, create_tables
 from src.dependencies import get_db
 
 load_dotenv()
+
+STATIC_DIR = Path(__file__).resolve().parent / "static"
 
 CLIENT_ID = os.getenv("CLIENT_ID")
 CLIENT_SECRET = os.getenv("CLIENT_SECRET")
@@ -32,13 +38,43 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 app.add_middleware(SessionMiddleware, secret_key=SESSION_SECRET)
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
-# @app.get("/login")
 
+def save_tokens(
+    db: Connection,
+    athlete_id: int,
+    username: str,
+    access_token: str,
+    refresh_token: str,
+    expires_at: int,
+) -> None:
+    existing = db.execute(
+        select(users).where(users.c.strava_athlete_id == athlete_id)
+    ).first()
 
-# @app.get("/auth")
+    token_values = {
+        "strava_access_token": encrypt_token(access_token),
+        "strava_refresh_token": encrypt_token(refresh_token),
+        "strava_token_expires_at": expires_at,
+    }
 
+    if existing:
+        db.execute(
+            update(users)
+            .where(users.c.strava_athlete_id == athlete_id)
+            .values(**token_values)
+        )
+    else:
+        db.execute(
+            insert(users).values(
+                strava_athlete_id=athlete_id,
+                username=username,
+                **token_values,
+            )
+        )
+    db.commit()
 
 @app.get("/users")
 def list_users(db: Connection = Depends(get_db)):
@@ -86,8 +122,16 @@ def login(request: Request):
         "https://www.strava.com/oauth/authorize?" + params, status_code=302
     )
 
+
 @app.get("/callback")
-async def callback(request: Request, code: str = "", state: str = "", scope: str = "", error: str = ""):
+async def callback(
+    request: Request,
+    code: str = "",
+    state: str = "",
+    scope: str = "",
+    error: str = "",
+    db: Connection = Depends(get_db),
+):
     if error or state != request.session.pop("state", None):
         raise HTTPException(400, "Authorization failed")
     if "activity:read" not in scope:
@@ -97,9 +141,15 @@ async def callback(request: Request, code: str = "", state: str = "", scope: str
         raise HTTPException(status_code=500, detail="CLIENT_SECRET is not set")
 
     async with httpx.AsyncClient() as c:
-        response = await c.post("https://www.strava.com/api/v3/oauth/token", data={
-            "client_id": CLIENT_ID, "client_secret": CLIENT_SECRET,
-            "code": code, "grant_type": "authorization_code"})
+        response = await c.post(
+            "https://www.strava.com/api/v3/oauth/token",
+            data={
+                "client_id": CLIENT_ID,
+                "client_secret": CLIENT_SECRET,
+                "code": code,
+                "grant_type": "authorization_code",
+            },
+        )
 
     print(response.json())
     try:
@@ -109,9 +159,14 @@ async def callback(request: Request, code: str = "", state: str = "", scope: str
         raise HTTPException(502, "Token exchange with Strava failed")
 
     tok = response.json()
-    print(tok)
-    # save_tokens(tok["athlete"]["id"], tok["access_token"],
-    #             tok["refresh_token"], tok["expires_at"])  # your DB helper
+    save_tokens(
+        db,
+        athlete_id=tok["athlete"]["id"],
+        username=tok["athlete"]["username"],
+        access_token=tok["access_token"],
+        refresh_token=tok["refresh_token"],
+        expires_at=tok["expires_at"],
+    )
     request.session["athlete_id"] = tok["athlete"]["id"]
 
     return RedirectResponse("/")
@@ -127,4 +182,4 @@ def create_user(data: UserIn, db: Connection = Depends(get_db)):
 
 @app.get("/")
 def read_root():
-    return {"Hello": "World"}
+    return FileResponse(STATIC_DIR / "homepage.html")
