@@ -15,11 +15,11 @@ from sqlalchemy import Connection, select, insert, update
 from starlette.middleware.sessions import SessionMiddleware
 from dotenv import load_dotenv
 
+load_dotenv()  # Must run before src imports so TOKEN_ENCRYPTION_KEY is set
+
 from src.crypto import encrypt_token, decrypt_token
 from src.database import users, create_tables
 from src.dependencies import get_db
-
-load_dotenv()
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 
