@@ -1,6 +1,10 @@
-def main():
-    print("Hello from strava-visualizer!")
+from fastapi import FastAPI, Depends, HTTPException
+
+app = FastAPI()
+
+app = FastAPI()
 
 
-if __name__ == "__main__":
-    main()
+@app.get("/")
+def read_root():
+    return {"Hello": "World"}
