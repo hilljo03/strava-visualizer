@@ -1,5 +1,12 @@
-from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String
-
+from sqlalchemy import (
+    create_engine,
+    MetaData,
+    Table,
+    Column,
+    Integer,
+    String,
+    BigInteger,
+)
 from sqlalchemy.pool import StaticPool
 
 DATABASE_URL = "sqlite:///./test.db"
@@ -15,6 +22,9 @@ users = Table(
     metadata,
     Column("id", Integer, primary_key=True),
     Column("username", String),
+    Column("strava_access_token", String, nullable=True),
+    Column("strava_refresh_token", String, nullable=True),
+    Column("strava_token_expires_at", BigInteger, nullable=True),
 )
 
 
