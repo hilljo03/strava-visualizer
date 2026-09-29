@@ -11,3 +11,8 @@ wheels/
 
 # Environment variables
 .env
+
+
+# AF 
+
+data/*.py
