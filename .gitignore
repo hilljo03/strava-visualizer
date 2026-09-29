@@ -12,7 +12,12 @@ wheels/
 # Environment variables
 .env
 
+<<<<<<< HEAD
 
 # AF 
 
 data/*.py
+=======
+# DB
+test.db
+>>>>>>> c19ec5339982e7dc5e63dfbf6838f570710675dc
