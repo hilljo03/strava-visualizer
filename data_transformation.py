@@ -3,6 +3,7 @@ from pathlib import Path
 from sqlalchemy import Connection, select
 from src.dependencies import get_db
 
+
 import requests
 
 ACTIVITIES_URL = "https://www.strava.com/api/v3/athlete/activities"
@@ -41,7 +42,27 @@ def fetch_all_activities(access_token: str, per_page: int = PER_PAGE) -> list:
         page += 1
     return activities
 
-def 
+def get_variables(act):
+
+    row = {}
+
+    row['strava_athlete_id'] = act['athlete']['id']
+    row['activity'] = act['type']
+    row['start_date_local'] = row['start_date_local']
+    row['start_lat'] = act['start_latlng'][0]
+    row['start_long'] = act['start_latlng'][1]
+    row['avg_heartrate'] = act['average_heartrate']
+    row['max_heartrate'] = act['max_heartrate']
+    row['suffer_score'] = act['suffer_score']
+    row['polyline'] = act['map']['summary_polyline']
+
+    return row
+
+def process_all_activities(all_activities, selected_activities = ['Run', 'Workout', 'Bike']):
+
+    filtered_activities = [activity for activity in all_activities if activity['type'] in selected_activities]
+
+    processed = [get_variables]
 
 
 if __name__ == "__main__":
@@ -56,3 +77,15 @@ if __name__ == "__main__":
     print("first 30:")
     for activity in activities[:30]:
         print(f"  {activity.get('start_date')}  {activity.get('type')}  {activity.get('name')}")
+
+
+VARS_TO_KEEP = [athlete id
+start time
+Activity
+start lat long
+average heart rate
+max heartrate
+suffer score
+polyline
+]
+
