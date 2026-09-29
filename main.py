@@ -3,12 +3,14 @@ from contextlib import asynccontextmanager
 import httpx
 import os
 import secrets
+from pathlib import Path
 from urllib.parse import urlencode
 
 from fastapi import FastAPI, Depends, HTTPException
 from pydantic import BaseModel
 from fastapi.requests import Request
-from fastapi.responses import RedirectResponse
+from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy import Connection, select, insert
 from starlette.middleware.sessions import SessionMiddleware
 from dotenv import load_dotenv
@@ -16,6 +18,8 @@ from src.database import users, create_tables
 from src.dependencies import get_db
 
 load_dotenv()
+
+STATIC_DIR = Path(__file__).resolve().parent / "static"
 
 CLIENT_ID = os.getenv("CLIENT_ID")
 CLIENT_SECRET = os.getenv("CLIENT_SECRET")
@@ -32,6 +36,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 app.add_middleware(SessionMiddleware, secret_key=SESSION_SECRET)
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
 # @app.get("/login")
@@ -127,4 +132,4 @@ def create_user(data: UserIn, db: Connection = Depends(get_db)):
 
 @app.get("/")
 def read_root():
-    return {"Hello": "World"}
+    return FileResponse(STATIC_DIR / "homepage.html")
