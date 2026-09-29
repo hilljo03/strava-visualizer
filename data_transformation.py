@@ -59,18 +59,13 @@ def get_variables(act):
     return row
 
 def process_all_activities(all_activities, selected_activities = ['Run', 'Workout', 'Bike']):
-
     filtered_activities = [activity for activity in all_activities if activity['type'] in selected_activities]
-
     processed = [get_variables]
 
 
 if __name__ == "__main__":
-
     access_token = get_access_token(USER_ID)
-
     activities = fetch_all_activities(access_token)
-
 
     print(f"total activities: {len(activities)}")
     print(f"wrote {OUTPUT_PATH}")
@@ -78,14 +73,4 @@ if __name__ == "__main__":
     for activity in activities[:30]:
         print(f"  {activity.get('start_date')}  {activity.get('type')}  {activity.get('name')}")
 
-
-VARS_TO_KEEP = [athlete id
-start time
-Activity
-start lat long
-average heart rate
-max heartrate
-suffer score
-polyline
-]
 
