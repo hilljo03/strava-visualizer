@@ -15,6 +15,8 @@ from sqlalchemy import Connection, select, insert, update
 from starlette.middleware.sessions import SessionMiddleware
 from dotenv import load_dotenv
 
+from src.models import User, UserIn
+
 load_dotenv()  # Must run before src imports so TOKEN_ENCRYPTION_KEY is set
 
 from src.crypto import encrypt_token, decrypt_token
@@ -41,7 +43,6 @@ app.add_middleware(SessionMiddleware, secret_key=SESSION_SECRET)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
-
 def save_tokens(
     db: Connection,
     athlete_id: int,
@@ -49,7 +50,7 @@ def save_tokens(
     access_token: str,
     refresh_token: str,
     expires_at: int,
-) -> None:
+) -> User:
     existing = db.execute(
         select(users).where(users.c.strava_athlete_id == athlete_id)
     ).first()
@@ -76,6 +77,20 @@ def save_tokens(
         )
     db.commit()
 
+    row = db.execute(
+        select(users).where(users.c.strava_athlete_id == athlete_id)
+    ).mappings().first()
+
+    return User(
+        id=row["id"],
+        strava_athlete_id=row["strava_athlete_id"],
+        username=row["username"],
+        strava_access_token=decrypt_token(row["strava_access_token"]),
+        strava_refresh_token=decrypt_token(row["strava_refresh_token"]),
+        strava_token_expires_at=row["strava_token_expires_at"],
+    )
+
+
 @app.get("/users")
 def list_users(db: Connection = Depends(get_db)):
     rows = db.execute(select(users)).mappings().all()
@@ -89,14 +104,6 @@ def get_user(user_id: int, db: Connection = Depends(get_db)):
     if row is None:
         raise HTTPException(status_code=404, detail="User not found")
     return row
-
-
-class UserIn(BaseModel):
-    username: str
-
-
-class User(UserIn):
-    id: int
 
 
 @app.get("/login")
