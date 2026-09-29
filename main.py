@@ -11,14 +11,15 @@ from fastapi.requests import Request
 from fastapi.responses import RedirectResponse
 from sqlalchemy import Connection, select, insert
 from starlette.middleware.sessions import SessionMiddleware
+from dotenv import load_dotenv
 from src.database import users, create_tables
 from src.dependencies import get_db
 
-# CLIENT_ID = os.getenv("STRAVA_CLIENT_ID")
-CLIENT_ID = 249528
-# CLIENT_SECRET = os.getenv("STRAVA_CLIENT_SECRET")
-CLIENT_SECRET = "81ac630c8926cc5f6ed32d7b04efb25e0193bdca"
-REDIRECT_URI = os.getenv("STRAVA_REDIRECT_URI", "http://localhost:8000/callback")
+load_dotenv()
+
+CLIENT_ID = os.getenv("CLIENT_ID")
+CLIENT_SECRET = os.getenv("CLIENT_SECRET")
+REDIRECT_URI = os.getenv("REDIRECT_URI", "http://localhost:8000/callback")
 # Falling back to an ephemeral secret keeps local dev working; sessions are
 # invalidated on restart, so set SESSION_SECRET for anything longer-lived.
 SESSION_SECRET = os.getenv("SESSION_SECRET") or secrets.token_urlsafe(32)
@@ -65,7 +66,7 @@ class User(UserIn):
 @app.get("/login")
 def login(request: Request):
     if not CLIENT_ID:
-        raise HTTPException(status_code=500, detail="STRAVA_CLIENT_ID is not set")
+        raise HTTPException(status_code=500, detail="CLIENT_ID is not set")
 
     print(REDIRECT_URI)
 
@@ -93,7 +94,7 @@ async def callback(request: Request, code: str = "", state: str = "", scope: str
         raise HTTPException(403, "Activity access is required")
 
     if not CLIENT_SECRET:
-        raise HTTPException(status_code=500, detail="STRAVA_CLIENT_SECRET is not set")
+        raise HTTPException(status_code=500, detail="CLIENT_SECRET is not set")
 
     async with httpx.AsyncClient() as c:
         response = await c.post("https://www.strava.com/api/v3/oauth/token", data={
