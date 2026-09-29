@@ -77,9 +77,11 @@ def save_tokens(
         )
     db.commit()
 
-    row = db.execute(
-        select(users).where(users.c.strava_athlete_id == athlete_id)
-    ).mappings().first()
+    row = (
+        db.execute(select(users).where(users.c.strava_athlete_id == athlete_id))
+        .mappings()
+        .first()
+    )
 
     return User(
         id=row["id"],
