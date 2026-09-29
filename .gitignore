@@ -12,7 +12,7 @@ wheels/
 # Environment variables
 .env
 
-# AF 
+# AF
 data/*.py
 
 # DB
