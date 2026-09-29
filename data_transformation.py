@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 from sqlalchemy import Connection, select
 from src.dependencies import get_db
-
+import src.models
 
 import requests
 
@@ -42,25 +42,31 @@ def fetch_all_activities(access_token: str, per_page: int = PER_PAGE) -> list:
         page += 1
     return activities
 
-def get_variables(act):
+def get_activities_model(act: Dict[str, Any]) -> ActivityCreate:
+    start_latlng = act.get("start_latlng") or []
+    start_lat = start_latlng[0] if len(start_latlng) > 0 else None
+    start_long = start_latlng[1] if len(start_latlng) > 1 else None
 
-    row = {}
+    summary_polyline = act.get("map", {}).get("summary_polyline")
 
-    row['strava_athlete_id'] = act['athlete']['id']
-    row['activity'] = act['type']
-    row['start_date_local'] = row['start_date_local']
-    row['start_lat'] = act['start_latlng'][0]
-    row['start_long'] = act['start_latlng'][1]
-    row['avg_heartrate'] = act['average_heartrate']
-    row['max_heartrate'] = act['max_heartrate']
-    row['suffer_score'] = act['suffer_score']
-    row['polyline'] = act['map']['summary_polyline']
-
-    return row
+    return Activity(
+        strava_athlete_id=act["athlete"]["id"],
+        activity=act["type"],
+        start_date_local=act["start_date_local"],  # Assuming ISO format string or datetime
+        start_lat=start_lat,
+        start_long=start_long,
+        avg_heartrate=act.get("average_heartrate"),
+        max_heartrate=act.get("max_heartrate"),
+        suffer_score=act.get("suffer_score"),
+        strava_activity_id=act.get("id"),
+        polyline=summary_polyline,
+    )
 
 def process_all_activities(all_activities, selected_activities = ['Run', 'Workout', 'Bike']):
     filtered_activities = [activity for activity in all_activities if activity['type'] in selected_activities]
-    processed = [get_variables]
+    processed = [get_activities_model(f) for f in filtered_activities]
+
+    return processed
 
 
 if __name__ == "__main__":
