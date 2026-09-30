@@ -1,10 +1,11 @@
 from sqlalchemy import (
     create_engine,
     MetaData,
-    DateTime
+    DateTime,
     Table,
     Column,
     Integer,
+    Float,
     String,
     BigInteger,
 )

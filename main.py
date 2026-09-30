@@ -121,7 +121,7 @@ def login(request: Request):
             "redirect_uri": REDIRECT_URI,
             "response_type": "code",
             "approval_prompt": "auto",
-            "scope": "read,activity:read",
+            "scope": "read,activity:read_all",
             "state": state,
         }
     )
