@@ -8,6 +8,8 @@ from sqlalchemy import (
     Float,
     String,
     BigInteger,
+    DateTime,
+    Float,
 )
 from sqlalchemy.pool import StaticPool
 
@@ -31,8 +33,8 @@ users = Table(
 )
 
 activities = Table(
-    "activities", 
-    metadata, 
+    "activities",
+    metadata,
     Column("id", Integer, primary_key=True, autoincrement=True),
     Column("strava_athlete_id", BigInteger, nullable=False, index=True),
     Column("activity", String(50), nullable=False),
@@ -43,7 +45,7 @@ activities = Table(
     Column("max_heartrate", Float, nullable=True),
     Column("suffer_score", Integer, nullable=True),
     Column("strava_activity_id", BigInteger, nullable=False),
-    Column("polyline", String, nullable=True)
+    Column("polyline", String, nullable=True),
 )
 
 
