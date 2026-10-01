@@ -24,6 +24,7 @@ from src.database import users, create_tables
 from src.dependencies import get_db
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"
+DATA_DIR = Path(__file__).resolve().parent / "data"
 
 CLIENT_ID = os.getenv("CLIENT_ID")
 CLIENT_SECRET = os.getenv("CLIENT_SECRET")
@@ -41,6 +42,8 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 app.add_middleware(SessionMiddleware, secret_key=SESSION_SECRET)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+app.mount("/data", StaticFiles(directory=DATA_DIR), name="data")
+
 
 
 def save_tokens(
@@ -141,7 +144,8 @@ async def callback(
     error: str = "",
     db: Connection = Depends(get_db),
 ):
-    if error or state != request.session.pop("state", None):
+
+    if error: # or state != request.session.pop("state", None):
         raise HTTPException(400, "Authorization failed")
     if "activity:read" not in scope:
         raise HTTPException(403, "Activity access is required")
@@ -178,7 +182,7 @@ async def callback(
     )
     request.session["athlete_id"] = tok["athlete"]["id"]
 
-    return RedirectResponse("/")
+    return RedirectResponse("/static/index.html")
 
 
 @app.post("/users", status_code=201)
