@@ -3,7 +3,7 @@ from typing import Optional
 from datetime import datetime
 
 class UserIn(BaseModel):
-    username: str
+    username: Optional[str] =  None
     strava_athlete_id: int
 
 

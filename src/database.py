@@ -26,7 +26,7 @@ users = Table(
     metadata,
     Column("id", Integer, primary_key=True),
     Column("strava_athlete_id", BigInteger, unique=True, nullable=False),
-    Column("username", String),
+    Column("username", String, nullable = True),
     Column("strava_access_token", String, nullable=True),
     Column("strava_refresh_token", String, nullable=True),
     Column("strava_token_expires_at", BigInteger, nullable=True),
