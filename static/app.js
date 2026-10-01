@@ -71,7 +71,7 @@ async function addRoutes(map) {
     type: 'line',
     source: 'routes',
     layout: { 'line-join': 'round', 'line-cap': 'round' },
-    paint: { 'line-color': '#fc5200', 'line-width': 3, 'line-opacity': 0.85 },
+    paint: { 'line-color': '#fc5200', 'line-width': 2, 'line-opacity': 0.1 },
   });
 
   const bounds = new maplibregl.LngLatBounds();

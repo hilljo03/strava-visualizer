@@ -8,7 +8,6 @@ from src.models import Activity
 from src.database import users
 from src.crypto import encrypt_token, decrypt_token
 
-
 import src.models
 import requests
 
@@ -16,7 +15,7 @@ ACTIVITIES_URL = "https://www.strava.com/api/v3/athlete/activities"
 PER_PAGE = 30
 DATABASE_URL = "sqlite:///./test.db"
 USER_ID = 2
-OUTPUT_PATH = "WOOHOO.json"
+OUTPUT_PATH = "data/activities_with_polylines.json"
 
 
 def get_access_token(user_id: int, db_path):
