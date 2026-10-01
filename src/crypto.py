@@ -1,5 +1,8 @@
 import os
 from cryptography.fernet import Fernet
+from dotenv import load_dotenv
+
+load_dotenv()
 
 _fernet = Fernet(os.environ["TOKEN_ENCRYPTION_KEY"].encode())
 
